@@ -1,13 +1,9 @@
-# Reconhecimento por Voz Simplificado
+# Reconhecimento de Voz via Navegador (WebRTC)
 
-Este projeto permite cadastrar e identificar usuários por voz usando Streamlit e MFCC.
+Este app permite cadastrar e verificar usuários por voz diretamente no navegador, usando Streamlit e MFCC (librosa).
 
-## Uso
+## Como rodar localmente
 
-1. Instale as dependências:
-   pip install -r requirements.txt
-
-2. Rode o app:
-   streamlit run app.py
-
-3. Grave vozes e identifique.
+```bash
+pip install -r requirements.txt
+streamlit run app.py
