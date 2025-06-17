@@ -1,6 +1,4 @@
-streamlit==1.20.0
-streamlit-webrtc==0.77.0
+streamlit
 numpy
 librosa
 soundfile
-av
