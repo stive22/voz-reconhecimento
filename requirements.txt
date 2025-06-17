@@ -1,9 +1,5 @@
 streamlit
-torch==2.0.1
-torchaudio
-pyannote.audio==2.1.1
+librosa
 numpy
-scikit-learn
 soundfile
 sounddevice
-av

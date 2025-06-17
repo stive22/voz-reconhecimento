@@ -1,17 +1,13 @@
-# Reconhecimento por Voz com Streamlit
+# Reconhecimento por Voz Simplificado
 
-Este projeto permite cadastrar vozes e fazer identificação de usuários via biometria vocal.
+Este projeto permite cadastrar e identificar usuários por voz usando Streamlit e MFCC.
 
-## Como usar
+## Uso
 
 1. Instale as dependências:
-```
-pip install -r requirements.txt
-```
+   pip install -r requirements.txt
 
 2. Rode o app:
-```
-streamlit run app.py
-```
+   streamlit run app.py
 
-3. Use o microfone para cadastrar e verificar vozes.
+3. Grave vozes e identifique.

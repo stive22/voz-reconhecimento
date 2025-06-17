@@ -1,19 +1,24 @@
-from pyannote.audio import Pipeline
+import librosa
+import numpy as np
 import os
 
-pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization", use_auth_token=None)
+def extrair_mfcc(caminho_audio):
+    y, sr = librosa.load(caminho_audio, sr=16000)
+    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+    return np.mean(mfcc, axis=1)
 
-def verificar_usuario(audio_path_verificacao):
-    embeddings = {}
-    for filename in os.listdir("audios"):
-        if filename.endswith(".wav") and filename != "verificacao.wav":
-            ref_path = os.path.join("audios", filename)
-            diarization = pipeline(ref_path)
-            embeddings[filename[:-4]] = diarization
+def comparar_vozes(arquivo_verificacao):
+    emb_verificacao = extrair_mfcc(arquivo_verificacao)
+    distancias = {}
 
-    diarization_verificacao = pipeline(audio_path_verificacao)
+    for arquivo in os.listdir("audios"):
+        if arquivo.endswith(".wav") and arquivo != "verificacao.wav":
+            emb_ref = extrair_mfcc(f"audios/{arquivo}")
+            dist = np.linalg.norm(emb_verificacao - emb_ref)
+            distancias[arquivo[:-4]] = dist
 
-    # Aqui está simplificado: só retorna o primeiro usuário como exemplo
-    if embeddings:
-        return list(embeddings.keys())[0]
+    if distancias:
+        usuario, distancia = min(distancias.items(), key=lambda x: x[1])
+        if distancia < 50:  # limiar ajustável
+            return usuario
     return None

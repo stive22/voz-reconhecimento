@@ -1,39 +1,37 @@
 import streamlit as st
-from reconhecimento import verificar_usuario
 import sounddevice as sd
 import soundfile as sf
+import numpy as np
 import os
+from reconhecimento import comparar_vozes
 
-st.set_page_config(page_title="Reconhecimento por Voz", layout="centered")
-st.title("🔊 Reconhecimento de Usuário por Voz")
+st.set_page_config(page_title="Reconhecimento por Voz Simplificado")
+st.title("🔊 Reconhecimento por Voz (Versão Leve)")
 
-opcao = st.radio("Escolha uma opção:", ("Cadastrar voz", "Verificar voz"))
+opcao = st.radio("Escolha uma opção:", ["Cadastrar Voz", "Verificar Voz"])
 
-if not os.path.exists("audios"):
-    os.makedirs("audios")
-
-def gravar_audio(filename, duration=5, sample_rate=16000):
-    st.info("Gravando... Fale agora")
-    audio = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1)
+def gravar_audio(caminho, duracao=4, taxa=16000):
+    st.info("🎙️ Gravando... fale agora.")
+    audio = sd.rec(int(duracao * taxa), samplerate=taxa, channels=1)
     sd.wait()
-    sf.write(filename, audio, sample_rate)
-    st.success(f"Áudio salvo como: {filename}")
+    sf.write(caminho, audio, taxa)
+    st.success(f"✅ Áudio salvo: {caminho}")
 
-if opcao == "Cadastrar voz":
-    nome = st.text_input("Digite um nome para o cadastro:")
-    if st.button("Gravar voz"):
+os.makedirs("audios", exist_ok=True)
+
+if opcao == "Cadastrar Voz":
+    nome = st.text_input("Nome do usuário:")
+    if st.button("Gravar"):
         if nome:
-            filepath = f"audios/{nome}.wav"
-            gravar_audio(filepath)
+            gravar_audio(f"audios/{nome}.wav")
         else:
             st.warning("Digite um nome antes de gravar.")
 
-elif opcao == "Verificar voz":
-    if st.button("Gravar voz para verificação"):
-        filepath = f"audios/verificacao.wav"
-        gravar_audio(filepath)
-        resultado = verificar_usuario(filepath)
+elif opcao == "Verificar Voz":
+    if st.button("Gravar para Verificação"):
+        gravar_audio("audios/verificacao.wav")
+        resultado = comparar_vozes("audios/verificacao.wav")
         if resultado:
-            st.success(f"Usuário identificado: {resultado}")
+            st.success(f"🎉 Voz reconhecida: {resultado}")
         else:
-            st.error("Usuário não reconhecido.")
+            st.error("❌ Voz não reconhecida.")
