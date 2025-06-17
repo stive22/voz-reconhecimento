@@ -1,9 +1,0 @@
-streamlit
-streamlit-webrtc
-torch==2.0.1
-torchaudio
-pyannote.audio==2.1.1
-numpy
-scikit-learn
-soundfile
-av
