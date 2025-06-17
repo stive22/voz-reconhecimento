@@ -1,35 +1,61 @@
 import streamlit as st
-import sounddevice as sd
-import soundfile as sf
-import numpy as np
+from streamlit_webrtc import webrtc_streamer, WebRtcMode, ClientSettings
+import av
 import os
+import numpy as np
+import wave
 from reconhecimento import comparar_vozes
 
-st.set_page_config(page_title="Reconhecimento por Voz Simplificado")
-st.title("🔊 Reconhecimento por Voz (Versão Leve)")
-
-opcao = st.radio("Escolha uma opção:", ["Cadastrar Voz", "Verificar Voz"])
-
-def gravar_audio(caminho, duracao=4, taxa=16000):
-    st.info("🎙️ Gravando... fale agora.")
-    audio = sd.rec(int(duracao * taxa), samplerate=taxa, channels=1)
-    sd.wait()
-    sf.write(caminho, audio, taxa)
-    st.success(f"✅ Áudio salvo: {caminho}")
+st.set_page_config(page_title="Reconhecimento de Voz via Navegador")
+st.title("🔊 Reconhecimento de Voz (WebRTC)")
 
 os.makedirs("audios", exist_ok=True)
 
-if opcao == "Cadastrar Voz":
-    nome = st.text_input("Nome do usuário:")
-    if st.button("Gravar"):
-        if nome:
-            gravar_audio(f"audios/{nome}.wav")
-        else:
-            st.warning("Digite um nome antes de gravar.")
+class AudioProcessor:
+    def __init__(self):
+        self.frames = []
 
-elif opcao == "Verificar Voz":
-    if st.button("Gravar para Verificação"):
-        gravar_audio("audios/verificacao.wav")
+    def recv(self, frame):
+        audio = frame.to_ndarray()
+        self.frames.append(audio)
+        return av.AudioFrame.from_ndarray(audio, layout="mono")
+
+def salvar_audio(frames, filename):
+    audio = np.concatenate(frames, axis=0).astype(np.int16)
+    with wave.open(filename, 'wb') as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(48000)
+        wf.writeframes(audio.tobytes())
+
+modo = st.radio("Escolha uma opção:", ["Cadastrar voz", "Verificar voz"])
+
+if modo == "Cadastrar voz":
+    nome = st.text_input("Nome do usuário para cadastro:")
+    if nome:
+        st.info("Grave sua voz por 5 segundos")
+        ctx = webrtc_streamer(
+            key="cadastro",
+            mode=WebRtcMode.SENDONLY,
+            in_audio=True,
+            client_settings=ClientSettings(media_stream_constraints={"audio": True, "video": False}),
+            audio_processor_factory=AudioProcessor,
+        )
+        if ctx.audio_processor and st.button("Salvar voz"):
+            salvar_audio(ctx.audio_processor.frames, f"audios/{nome}.wav")
+            st.success("✅ Voz cadastrada com sucesso.")
+
+elif modo == "Verificar voz":
+    st.info("Grave sua voz para verificação (5 segundos)")
+    ctx = webrtc_streamer(
+        key="verificar",
+        mode=WebRtcMode.SENDONLY,
+        in_audio=True,
+        client_settings=ClientSettings(media_stream_constraints={"audio": True, "video": False}),
+        audio_processor_factory=AudioProcessor,
+    )
+    if ctx.audio_processor and st.button("Verificar voz"):
+        salvar_audio(ctx.audio_processor.frames, "audios/verificacao.wav")
         resultado = comparar_vozes("audios/verificacao.wav")
         if resultado:
             st.success(f"🎉 Voz reconhecida: {resultado}")
