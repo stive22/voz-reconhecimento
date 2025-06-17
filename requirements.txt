@@ -1,8 +1,0 @@
-streamlit
-streamlit-webrtc
-torch
-pyannote.audio
-numpy
-scikit-learn
-soundfile
-av
